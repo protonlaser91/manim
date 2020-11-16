@@ -109,7 +109,10 @@ class GraphScene(Scene):
         )
 
         x_axis = NumberLine(**self.x_axis_config)
-        x_axis.shift(self.graph_origin - x_axis.number_to_point(0))
+        x_shift = x_axis.number_to_point(
+            0 if self.x_min <= 0 <= self.x_max else self.x_min
+        )
+        x_axis.shift(self.graph_origin - x_shift)
         if len(self.x_labeled_nums) > 0:
             if self.exclude_zero_label:
                 self.x_labeled_nums = [x for x in self.x_labeled_nums if x != 0]
@@ -117,11 +120,10 @@ class GraphScene(Scene):
         if self.x_axis_label:
             x_label = Tex(self.x_axis_label)
             x_label.next_to(
-                x_axis.get_tips() if self.include_tip else x_axis.get_tick_marks(),
+                x_axis.get_corner(self.x_label_position),
                 self.x_label_position,
                 buff=SMALL_BUFF,
             )
-            x_label.shift_onto_screen()
             x_axis.add(x_label)
             self.x_axis_label_mob = x_label
 
@@ -151,8 +153,11 @@ class GraphScene(Scene):
         )
 
         y_axis = NumberLine(**self.y_axis_config)
-        y_axis.shift(self.graph_origin - y_axis.number_to_point(0))
-        y_axis.rotate(np.pi / 2, about_point=y_axis.number_to_point(0))
+        y_shift = y_axis.number_to_point(
+            0 if self.y_min <= 0 <= self.y_max else self.y_min
+        )
+        y_axis.shift(self.graph_origin - y_shift)
+        y_axis.rotate(np.pi / 2, about_point=self.graph_origin)
         if len(self.y_labeled_nums) > 0:
             if self.exclude_zero_label:
                 self.y_labeled_nums = [y for y in self.y_labeled_nums if y != 0]
@@ -164,7 +169,6 @@ class GraphScene(Scene):
                 self.y_label_position,
                 buff=SMALL_BUFF,
             )
-            y_label.shift_onto_screen()
             y_axis.add(y_label)
             self.y_axis_label_mob = y_label
 
