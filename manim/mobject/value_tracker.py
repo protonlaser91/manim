@@ -42,23 +42,23 @@ class ValueTracker(Mobject):
 
     """
 
-    def __init__(self, value=0, **kwargs):
+    def __init__(self, *values, **kwargs):
         Mobject.__init__(self, **kwargs)
         self.points = np.zeros((1, 3))
-        self.set_value(value)
+        self.set_value(*values)
 
     def get_value(self):
         return self.points[0, 0]
 
-    def set_value(self, value):
-        self.points[0, 0] = value
+    def set_value(self, *values):
+        self.points[0, :len(values)] = values
         return self
 
-    def increment_value(self, d_value):
-        self.set_value(self.get_value() + d_value)
+    def increment_value(self, *values):
+        self.set_value(self.get_value() + values)
 
-    def __iadd__(self, d_value):
-        self.increment_value(d_value)
+    def __iadd__(self, values):
+        self.increment_value(*values)
         return self
 
     def interpolate(self, mobject1, mobject2, alpha, path_func=straight_path):

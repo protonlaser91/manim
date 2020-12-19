@@ -34,10 +34,18 @@ class Animation(object):
         "suspend_mobject_updating": True,
     }
 
+<<<<<<< Updated upstream
     def __init__(self, mobject, **kwargs):
         assert isinstance(mobject, Mobject)
         digest_config(self, kwargs)
         self.mobject = mobject
+=======
+    def _typecheck_input(self, mobject):
+        if mobject is None:
+            logger.warning("creating dummy animation")
+        elif not isinstance(mobject,Mobject):
+            raise TypeError("Animation only works on Mobjects")
+>>>>>>> Stashed changes
 
     def __str__(self):
         if self.name:
@@ -75,7 +83,7 @@ class Animation(object):
 
     def get_all_mobjects(self):
         """
-        Ordering must match the ording of arguments to interpolate_submobject
+        Ordering must match the ordering of arguments to interpolate_submobject
         """
         return self.mobject, self.starting_mobject
 
@@ -132,7 +140,7 @@ class Animation(object):
 
     def interpolate_submobject(self, submobject, starting_sumobject, alpha):
         # Typically implemented by subclass
-        pass
+        raise NotImplementedError
 
     def get_sub_alpha(self, alpha, index, num_submobjects):
         # TODO, make this more understanable, and/or combine

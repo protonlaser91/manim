@@ -1,37 +1,31 @@
 """Mobjects representing function graphs."""
 
-__all__ = ["ParametricFunction", "FunctionGraph"]
+__all__ = ["ParametricFunction"]
 
 from manim import logger
 
 from .. import config
 from ..constants import *
 from ..mobject.types.vectorized_mobject import VMobject
-from ..utils.config_ops import digest_config, merge_dicts_recursively
+from ..utils.config_ops import  merge_dicts_recursively
 from ..utils.color import YELLOW
 
 import math
 
 class ParametricFunction(VMobject):
     """A parametric curve.
-
     Examples
     --------
-
     .. manim:: PlotParametricFunction
         :save_last_frame:
-
         class PlotParametricFunction(Scene):
             def func(self, t):
                 return np.array((np.sin(2 * t), np.sin(3 * t), 0))
-
             def construct(self):
                 func = ParametricFunction(self.func, t_max = TAU, fill_opacity=0).set_color(RED)
                 self.add(func.scale(3))
-
     .. manim:: ThreeDParametricSpring
         :save_last_frame:
-
         class ThreeDParametricSpring(ThreeDScene):
             def construct(self):
                 curve1 = ParametricFunction(
@@ -47,31 +41,31 @@ class ParametricFunction(VMobject):
                 self.wait()
     """
 
-    CONFIG = {
-        "t_min": 0,
-        "t_max": 1,
-        "step_size": 0.01,  # Use "auto" (lowercase) for automatic step size
-        "dt": 1e-8,
-        # TODO, be smarter about figuring these out?
-        "discontinuities": [],
-    }
-
-    def __init__(self, function=None, **kwargs):
-        # either get a function from __init__ or from CONFIG
-        self.function = function or self.function
+    def __init__(
+        self,
+        function=None,
+        t_min=0,
+        t_max=1,
+        step_size=0.01,
+        dt=1e-8,
+        discontinuities=None,
+        **kwargs
+    ):
+        self.function = function
+        self.t_min = t_min
+        self.t_max = t_max
+        self.step_size = step_size
+        self.dt = dt
+        self.discontinuities = [] if discontinuities is None else discontinuities
         VMobject.__init__(self, **kwargs)
 
     def get_function(self):
         return self.function
 
-    """
-    t : int, float
-    The t value
-    
-    Returns:
-    The ParametricFunction evaluated at the value t
-    """
-    def evaluate(self, t):
+    def evaluate(self,t):
+        return self.function(t)
+
+    def get_point_from_function(self, t):
         return self.function(t)
 
     def get_step_size(self, t=None):
@@ -166,25 +160,3 @@ class ParametricFunction(VMobject):
 
     def get_derivative_function(self,dt=0.01):
         return lambda t: np.array([self.evaluate(t)[0],self.derivative(t,dt),self.evaluate(t)[2]])
-
-class FunctionGraph(ParametricFunction):
-    CONFIG = {
-        "color": YELLOW,
-    }
-
-    def __init__(self, function, **kwargs):
-        logger.warning("This class is being deprecated due to its lack of use. Please use ParametricFunction instead!")
-        digest_config(self, kwargs)
-        self.x_min = -config["frame_x_radius"]
-        self.x_max = config["frame_x_radius"]
-        self.parametric_function = lambda t: np.array([t, function(t), 0])
-        ParametricFunction.__init__(
-            self, self.parametric_function, **merge_dicts_recursively({'t_min':self.x_min, 't_max':self.x_max},kwargs)
-        )
-        self.function = function
-
-    def get_function(self):
-        return self.function
-
-    def get_point_from_function(self, x):
-        return self.parametric_function(x)
