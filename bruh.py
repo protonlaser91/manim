@@ -4,6 +4,7 @@ from pathlib import Path
 
 from scipy.integrate import odeint
 from scipy.spatial.transform import Rotation as R
+from time import perf_counter
 
 from manim import *
 
@@ -39,6 +40,10 @@ class LongJohn(Scene):
         "center_point": 2*DOWN + 4*LEFT,
     }
 
+    def init(self):
+        self.startTime = perf_counter()
+        print("Start: ",self.startTime)
+
     def arrowToDot(self, t):
         t.put_start_and_end_on(self.n.c2p(*ORIGIN),self.arcCurve.evaluate(self.degreeMeasure.get_value()))
 
@@ -59,7 +64,11 @@ class LongJohn(Scene):
         return [self.n.c2p(*a) for a in np.column_stack((t, odeint(f, init, t)[:, 0], np.zeros(len(t))))]
 
 
+    def getElapsedTime(self):
+        return perf_counter()-self.startTime
+
     def construct(self):
+        self.init()
         self.n = Axes(**self.bruh)
         self.play(Write(self.n),Write(self.n.get_coordinate_labels()))
         self.degreeMeasure = ValueTracker(0) #
@@ -69,15 +78,10 @@ class LongJohn(Scene):
         self.diffyQsoln = ParametricFunction(lambda t: [0,0,0]).set_points_smoothly(self.get_points(3))
         self.d = Dot(self.n.c2p(*self.arcCurve.evaluate(0))).set_color(ORANGE).add_updater(lambda t: self.placeDotTangent(t))
 
+        self.time = DecimalNumber(2, num_decimal_places=1).add_updater(lambda d: d.set_value(self.getElapsedTime())).move_to(
+            UP * 3 + RIGHT * 3)
+        self.play(ShowCreation(self.arcCurve),ShowCreation(self.diffyQsoln),Write(self.time))
 
-        self.play(ShowCreation(self.arcCurve),ShowCreation(self.diffyQsoln))
-
-           #       GrowArrow(
-          #            Arrow(self.arcCurve.evaluate(0),deriv(self.arcCurve.function,t=self.degreeMeasure.get_value(),n=2),).set_color(RED_C).add_updater(
-           #               lambda t: t.put_start_and_end_on(self.d.get_center(),self.d.get_center() +
-                            #                               self.arcCurve.vector_derivative(t=self.degreeMeasure.get_value())) #ok....howdowedothis
-          #            )
-         #         ))
 
 
         self.wait()
